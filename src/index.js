@@ -1,17 +1,40 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
-
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
+import React from "./react";
+import ReactDOM from "./react-dom/client";
+debugger;
+let element = (
+  <div className="title" style={{ color: "red" }}>
+    <span>hello</span>
+  </div>
 );
+console.log(element);
+const DOMRoot = ReactDOM.createRoot(document.getElementById("root"));
+// 就是把虚拟DOM变成真实DOM的过程，并且自动插入到页面中
+DOMRoot.render(element);
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();
+/**
+ {
+    $$typeof: Symbol(react.element)
+    "type": "div",
+    "key": null,
+    "ref": null,
+    "props": {
+        "className": "title",
+        "style": {
+            "color": "red"
+        },
+        "children": {
+        $$typeof: Symbol(react.element)
+            "type": "span",
+            "key": null,
+            "ref": null,
+            "props": {
+                "children": "hello"
+            },
+            "_owner": null,
+            "_store": {}
+        }
+    },
+    "_owner": null,
+    "_store": {}
+}
+ */
