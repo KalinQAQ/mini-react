@@ -24,7 +24,7 @@ function createDOM(vdom) {
       return mountFunctionComponent(vdom);
     }
   } else {
-    dom = document.createElement(type);
+    dom = document.createElement(type); // 原生组件
   }
   if (props) {
     updateProps(dom, {}, props);
@@ -37,12 +37,15 @@ function createDOM(vdom) {
       }
     }
   }
+  // 根据虚拟DOM创建真实DOM成功后，就可以建立关系
+  vdom.trueDOM = dom;
   return dom;
 }
 
 function mountFunctionComponent(vdom) {
   const { type, props } = vdom; // FunctionComponent
   const renderVdom = type(props);
+  vdom.oldRenderVdom = renderVdom;
   return createDOM(renderVdom);
 }
 
@@ -50,6 +53,8 @@ function mountClassComponent(vdom) {
   let { type, props } = vdom;
   let classInstance = new type(props);
   let renderVdom = classInstance.render();
+  // 在获取render的渲染结果后把此结果放到classInstance.oldRenderVdom进行暂存
+  classInstance.oldRenderVdom = renderVdom;
   let dom = createDOM(renderVdom);
   return dom;
 }
@@ -78,6 +83,8 @@ function updateProps(dom, oldProps = {}, newProps = {}) {
       for (const attr in styleObject) {
         dom.style[attr] = styleObject[attr];
       }
+    } else if (/^on[A-Z].*/.test(key)) {
+      dom[key.toLowerCase()] = newProps[key];
     } else {
       // 如果是其他属性，则直接赋值
       dom[key] = newProps[key];
@@ -88,6 +95,17 @@ function updateProps(dom, oldProps = {}, newProps = {}) {
       dom[key] = null;
     }
   }
+}
+
+export function findDOM(vdom) {
+  if (!vdom) return null;
+  return vdom.trueDOM;
+}
+
+export function compareTwoVdom(parentNode, oldVdom, newVdom) {
+  let oldDOM = findDOM(oldVdom);
+  let newDOM = createDOM(newVdom);
+  parentNode.replaceChild(newDOM, oldDOM);
 }
 
 class DOMRoot {

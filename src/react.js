@@ -22,9 +22,8 @@ function createElement(type, config, children) {
   let props = { ...config };
   // 如果参数大于3说明有儿子，并且儿子数量大于一个
   if (arguments.length > 3) {
-    props.children = Array.prototyp;
+    props.children = Array.prototype.slice.call(arguments, 2).map(wrapToVdom);
   } else if (arguments.length === 3) {
-    debugger;
     props.children = wrapToVdom(children);
   }
   return {
