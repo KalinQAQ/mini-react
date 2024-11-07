@@ -1,5 +1,6 @@
 import React from "./react";
 import ReactDOM from "./react-dom/client";
+import { updateQueue } from "./Component";
 /**
  * 1.函数组件接收一个属性对象并返回一个React元素
  * 2.函数必须大写字母开头，内部通过大小写判断是自定义组件还是默认组件 div span
@@ -15,16 +16,27 @@ class ClassComponent extends React.Component {
   handleClick = () => {
     // 除构造函数外不能直接修改this.state，需要通过setState来修改状态
     // 因为setState有一个副作用，就是修改完状态后会让组件重新刷新
+    updateQueue.isBatchingUpdate = true;
     this.setState({
       number: this.state.number + 1,
     });
+    console.log(this.state.number);
     this.setState({
       number: this.state.number + 1,
     });
-    this.setState({
-      age: this.state.age + 1,
-    });
-    console.log("newState", this.state);
+    console.log(this.state.number);
+    setTimeout(() => {
+      this.setState({
+        number: this.state.number + 1,
+      });
+      console.log(this.state.number);
+      this.setState({
+        number: this.state.number + 1,
+      });
+      console.log(this.state.number);
+    }, 1000);
+    updateQueue.isBatchingUpdate = false;
+    updateQueue.batchUpdate();
   };
   render() {
     return (

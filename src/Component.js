@@ -1,17 +1,41 @@
 import { findDOM, compareTwoVdom } from "./react-dom/client";
+// 这是一个更新队列
+export let updateQueue = {
+  isBatchingUpdate: false, // 这是一个是否是批量更新的标识，默认是非批量的， 是同步的
+  updaters: new Set(), // 更新的集合
+  batchUpdate() {
+    for (const updater of updateQueue.updaters) {
+      updater.updateComponent();
+    }
+    updateQueue.updaters.clear();
+  },
+};
 class Updater {
   constructor(classInstance) {
     this.classInstance = classInstance;
     // 用来存放更新的状态
     this.pendingStates = [];
+    this.callbacks = [];
   }
-  addState(partialState) {
+  flushCallbacks() {
+    if (this.callbacks.length > 0) {
+      this.callbacks.forEach((callback) => callback());
+      this.callbacks.length = 0;
+    }
+  }
+  addState(partialState, callback) {
     this.pendingStates.push(partialState); // 等待更新的或者说等待生效的状态
     // 准备更新
     this.emitUpdate();
   }
   emitUpdate() {
-    this.updateComponent();
+    // 如果需要批量更新
+    if (updateQueue.isBatchingUpdate) {
+      // 则不要直接更新组件，而是先把更新器添加到updaters里去进行暂存
+      updateQueue.updaters.add(this);
+    } else {
+      this.updateComponent();
+    }
   }
   // 获取等待生效的状态和类的实例
   updateComponent() {
@@ -25,9 +49,9 @@ class Updater {
     // 先获取类的实例上的老状态
     let { state } = classInstance;
     pendingStates.forEach((nextState) => {
-      // if (typeof nextState === "function") {
-      //   nextState = nextState(state);
-      // }
+      if (typeof nextState === "function") {
+        nextState = nextState(state);
+      }
       state = { ...state, ...nextState };
     });
     pendingStates.length = 0;
