@@ -4,6 +4,7 @@ export let updateQueue = {
   isBatchingUpdate: false, // 这是一个是否是批量更新的标识，默认是非批量的， 是同步的
   updaters: new Set(), // 更新的集合
   batchUpdate() {
+    updateQueue.isBatchingUpdate = false;
     for (const updater of updateQueue.updaters) {
       updater.updateComponent();
     }
@@ -25,6 +26,10 @@ class Updater {
   }
   addState(partialState, callback) {
     this.pendingStates.push(partialState); // 等待更新的或者说等待生效的状态
+    debugger;
+    if (typeof callback === "function") {
+      this.callbacks.push(callback);
+    }
     // 准备更新
     this.emitUpdate();
   }
@@ -71,8 +76,8 @@ export class Component {
     this.state = {};
     this.updater = new Updater(this);
   }
-  setState(partialState) {
-    this.updater.addState(partialState);
+  setState(partialState, callback) {
+    this.updater.addState(partialState, callback);
   }
   forceUpdate() {
     // 先获取老的虚拟DOM，再计算新的虚拟DOM，找到新老虚拟DOM的差异，把这些差异更新到真实DOM上

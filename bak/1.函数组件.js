@@ -1,5 +1,6 @@
 import React from "./react";
 import ReactDOM from "./react-dom/client";
+import { updateQueue } from "./Component";
 /**
  * 1.函数组件接收一个属性对象并返回一个React元素
  * 2.函数必须大写字母开头，内部通过大小写判断是自定义组件还是默认组件 div span
@@ -10,12 +11,20 @@ class ClassComponent extends React.Component {
   constructor(props) {
     super(props);
     // 设置默认状态，在构造函数中是为一个一个可以设置默认值的地方
-    this.state = { number: 0 };
+    this.state = { number: 0, age: 16 };
   }
   handleClick = () => {
-    this.setState({
-      number: this.state.number + 1,
-    });
+    // 除构造函数外不能直接修改this.state，需要通过setState来修改状态
+    // 因为setState有一个副作用，就是修改完状态后会让组件重新刷新
+    updateQueue.isBatchingUpdate = true;
+    this.setState(
+      {
+        number: this.state.number + 1,
+      },
+      () => {
+        console.log("this.state", this.state);
+      }
+    );
     console.log(this.state.number);
     this.setState({
       number: this.state.number + 1,
@@ -31,39 +40,15 @@ class ClassComponent extends React.Component {
       });
       console.log(this.state.number);
     }, 1000);
-  };
-  clickButtonCapture = (event) => {
-    console.log("clickButtonCapture");
-  };
-  clickDivCapture = (event) => {
-    console.log("clickDivCapture");
-  };
-  clickButton = (event) => {
-    console.log("clickButtonBubble");
-    event.stopPropagation();
-  };
-  clickDiv = (event) => {
-    console.log("clickDivBubble");
-  };
-  clickMyPCapture = () => {
-    console.log("clickMyPCapture");
+    updateQueue.isBatchingUpdate = false;
+    updateQueue.batchUpdate();
   };
   render() {
     return (
-      <div
-        id="counter"
-        onClick={this.clickDiv}
-        onClickCapture={this.clickDivCapture}
-      >
-        <div id="myp" onClickCapture={this.clickMyPCapture}>
-          <p>number:{this.state.number}</p>
-          <button
-            onClick={this.clickButton}
-            onClickCapture={this.clickButtonCapture}
-          >
-            +
-          </button>
-        </div>
+      <div id="counter">
+        <p>number:{this.state.number}</p>
+        <p>age:{this.state.age}</p>
+        <button onClick={this.handleClick}>+</button>
       </div>
     );
   }
